@@ -1,0 +1,7 @@
+pip install --upgrade pip
+streamlit
+streamlit_option_menu
+speech_recognition
+pyttsx3
+google.generativeai
+streamlit_chat
