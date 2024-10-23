@@ -3,12 +3,11 @@ import speech_recognition as sr
 import pyttsx3
 import google.generativeai as genai
 from streamlit_chat import message
-import pywhatkit as kit
 import re
 
 def app():
     # Initialize Streamlit app with a retractable sidebar
-    #st.set_page_config(page_title="MAX - Student's Personal Assistant", layout="wide")
+    # st.set_page_config(page_title="MAX - Student's Personal Assistant", layout="wide")
 
     # Sidebar for extra options, collapsible
     with st.sidebar:
@@ -131,32 +130,22 @@ def app():
 
     # Handle text input submission automatically on pressing Enter
     if user_text:
-        if user_text.startswith("send whatsapp"):
-            # Extract phone number and message from user input
-            try:
-                _, phone_number, *message_parts = user_text.split()
-                message_to_send = ' '.join(message_parts)
-                kit.sendwhatmsg_instantly(phone_number, message_to_send)
-                st.success(f"Message sent to {phone_number}!")
-            except Exception as e:
-                st.error(f"Failed to send WhatsApp message: {e}")
-        else:
-            # Add user query to the chat history
-            st.session_state["messages"].append({"role": "user", "content": user_text})
+        # Add user query to the chat history
+        st.session_state["messages"].append({"role": "user", "content": user_text})
 
-            # Send user query to the model and get the response
-            response = chat_session.send_message(user_text)
-            response_text = response.text
+        # Send user query to the model and get the response
+        response = chat_session.send_message(user_text)
+        response_text = response.text
 
-            # Add MAX's response to the chat history
-            st.session_state["messages"].append({"role": "assistant", "content": response_text})
+        # Add MAX's response to the chat history
+        st.session_state["messages"].append({"role": "assistant", "content": response_text})
 
-            # Display the messages
-            message(user_text, is_user=True)
-            message(response_text)
+        # Display the messages
+        message(user_text, is_user=True)
+        message(response_text)
 
-            # Text-to-Speech (speak out the response)
-            speak(response_text)
+        # Text-to-Speech (speak out the response)
+        speak(response_text)
 
     # Allow user to quit
     if st.button("Quit"):
