@@ -6,3 +6,4 @@ pyttsx3
 google.generativeai
 streamlit_chat
 pywhatkit
+gtts
