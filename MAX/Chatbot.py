@@ -1,14 +1,10 @@
 import streamlit as st
 import speech_recognition as sr
-import pyttsx3
 import google.generativeai as genai
 from streamlit_chat import message
 import re
 
 def app():
-    # Initialize Streamlit app with a retractable sidebar
-    # st.set_page_config(page_title="MAX - Student's Personal Assistant", layout="wide")
-
     # Sidebar for extra options, collapsible
     with st.sidebar:
         st.title("MAX - The Assistant")
@@ -55,28 +51,11 @@ def app():
         ]
     )
 
-    # Initialize the speech recognizer and text-to-speech engine
+    # Initialize the speech recognizer
     recognizer = sr.Recognizer()
-    tts_engine = pyttsx3.init()
-
-    # List available voices and set a female voice if available
-    voices = tts_engine.getProperty('voices')
-    for voice in voices:
-        if 'female' in voice.name.lower():
-            tts_engine.setProperty('voice', voice.id)
-            break
 
     def clean_text(text):
         return re.sub(r'[^a-zA-Z0-9\s]', '', text)
-
-    def speak(text):
-        cleaned_text = clean_text(text)
-        try:
-            tts_engine.say(cleaned_text)
-            tts_engine.runAndWait()
-        except RuntimeError as e:
-            if str(e) == 'run loop already started':
-                pass
 
     # Ensure messages list is initialized in the session state
     if "messages" not in st.session_state:
@@ -84,7 +63,6 @@ def app():
         # Introduce MAX when starting for the first time
         introduction_text = "Hi there! I'm MAX, your friendly assistant here to make your student life easier."
         st.session_state["messages"].append({"role": "assistant", "content": introduction_text})
-        speak(introduction_text)
 
     # Display existing messages from the chat history using streamlit-chat
     for i, message_dict in enumerate(st.session_state["messages"]):
@@ -96,7 +74,7 @@ def app():
     # Bottom chat input bar with microphone button
     user_text = st.chat_input("Type your message or click the microphone button to speak:")
 
-    # Microphone button for voice input and TTS
+    # Microphone button for voice input
     if st.button("🎤"):
         with sr.Microphone() as source:
             st.write("Listening...")
@@ -117,9 +95,6 @@ def app():
                 # Display the messages
                 message(user_query, is_user=True)
                 message(response_text)
-
-                # Text-to-Speech
-                speak(response_text)
 
             except sr.UnknownValueError:
                 st.error("Sorry, I did not understand that.")
@@ -143,9 +118,6 @@ def app():
         # Display the messages
         message(user_text, is_user=True)
         message(response_text)
-
-        # Text-to-Speech (speak out the response)
-        speak(response_text)
 
     # Allow user to quit
     if st.button("Quit"):
