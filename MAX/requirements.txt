@@ -1,7 +1,7 @@
-pip install --upgrade pip
 streamlit
 streamlit_option_menu
-speech_recognition
+speechrecognition
 pyttsx3
 google.generativeai
 streamlit_chat
+pywhatkit
