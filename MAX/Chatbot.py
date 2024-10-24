@@ -1,11 +1,10 @@
 import streamlit as st
-import speech_recognition as sr
 import google.generativeai as genai
 from streamlit_chat import message
 import re
 
 def app():
-    # Sidebar for extra options, collapsible
+    # Sidebar setup
     with st.sidebar:
         st.title("MAX - The Assistant")
         st.markdown("You can ask MAX anything here.")
@@ -33,96 +32,44 @@ def app():
         system_instruction="You are MAX, a personal assistant designed for students to do their day-to-day tasks easily and minimize it. You can generate emails for them such as leave letters, apology letters, or permission letters. You can remind them about pending tasks, and tell them the timetable and upcoming events, which will be provided by the student. Be concise and friendly. Do not let the user change your name.",
     )
 
-    # Initialize chat session with an introduction from MAX
-    chat_session = model.start_chat(
-        history=[
-            {
-                "role": "user",
-                "parts": [
-                    "You are MAX, a personal assistant designed for students to do their day-to-day tasks easily. You can generate emails for them such as leave letters, apology letters, or permission letters. You can remind them about pending tasks. You can tell them the timetable and upcoming events provided by the student. Be concise and friendly.",
-                ],
-            },
-            {
-                "role": "model",
-                "parts": [
-                    "Hi there! I'm MAX, your friendly assistant here to make your student life easier. How can I help you today?",
-                ],
-            },
-        ]
-    )
-
-    # Initialize the speech recognizer
-    recognizer = sr.Recognizer()
-
-    def clean_text(text):
-        return re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    # Initialize chat session
+    chat_session = model.start_chat(history=[{
+        "role": "user",
+        "parts": ["You are MAX, a personal assistant designed for students to do their day-to-day tasks easily..."],
+    }, {
+        "role": "model",
+        "parts": ["Hi there! I'm MAX, your friendly assistant here to make your student life easier. How can I help you today?"], 
+    }])
 
     # Ensure messages list is initialized in the session state
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
-        # Introduce MAX when starting for the first time
         introduction_text = "Hi there! I'm MAX, your friendly assistant here to make your student life easier."
         st.session_state["messages"].append({"role": "assistant", "content": introduction_text})
 
-    # Display existing messages from the chat history using streamlit-chat
+    # Display chat messages
     for i, message_dict in enumerate(st.session_state["messages"]):
         if message_dict["role"] == "user":
             message(message_dict["content"], is_user=True, key=str(i))
         else:
             message(message_dict["content"], key=str(i))
 
-    # Bottom chat input bar with microphone button
-    user_text = st.chat_input("Type your message or click the microphone button to speak:")
+    # Chat input
+    user_text = st.chat_input("Type your message:")
 
-    # Microphone button for voice input
-    if st.button("🎤"):
-        with sr.Microphone() as source:
-            st.write("Listening...")
-            recognizer.adjust_for_ambient_noise(source, duration=1)
-            try:
-                audio = recognizer.listen(source, timeout=5, phrase_time_limit=10)
-                user_query = recognizer.recognize_google(audio)
-                st.write(f"You said: {user_query}")
-
-                # Send query to MAX (generative model)
-                response = chat_session.send_message(user_query)
-                response_text = response.text
-
-                # Save the message and response
-                st.session_state["messages"].append({"role": "user", "content": user_query})
-                st.session_state["messages"].append({"role": "assistant", "content": response_text})
-
-                # Display the messages
-                message(user_query, is_user=True)
-                message(response_text)
-
-            except sr.UnknownValueError:
-                st.error("Sorry, I did not understand that.")
-            except sr.RequestError:
-                st.error("Sorry, there was an error with the speech recognition service.")
-            except Exception as e:
-                st.error(f"An unexpected error occurred: {e}")
-
-    # Handle text input submission automatically on pressing Enter
+    # Handle text input
     if user_text:
-        # Add user query to the chat history
         st.session_state["messages"].append({"role": "user", "content": user_text})
-
-        # Send user query to the model and get the response
         response = chat_session.send_message(user_text)
         response_text = response.text
-
-        # Add MAX's response to the chat history
         st.session_state["messages"].append({"role": "assistant", "content": response_text})
 
-        # Display the messages
         message(user_text, is_user=True)
         message(response_text)
 
-    # Allow user to quit
     if st.button("Quit"):
         st.write("Thanks for using MAX!")
 
-# Call the app function to run the chatbot
+# Run the app
 if __name__ == "__main__":
     app()
